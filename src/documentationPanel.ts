@@ -1,5 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as http from 'http';
+import axios from 'axios';
 
 /**
  * Handles the panel state etc.
@@ -13,12 +15,12 @@ export class DocumentationPanel {
     public static readonly viewType = 'docPanel';
 
     private readonly _panel: vscode.WebviewPanel;
-	private readonly _extensionPath: string;
+	private readonly _uri: string;
     private _disposables: vscode.Disposable[] = [];
 
-    private constructor(panel: vscode.WebviewPanel, extensionPath: string) {
+    private constructor(panel: vscode.WebviewPanel, uri: string) {
 		this._panel = panel;
-		this._extensionPath = extensionPath;
+		this._uri = uri;
 
 		// Set the webview's initial html content
 		this._update();
@@ -51,10 +53,35 @@ export class DocumentationPanel {
 			this._disposables
 		);
     }
+
+    public static createOrShow(uri: string) {
+		const column = vscode.window.activeTextEditor
+			? vscode.window.activeTextEditor.viewColumn
+			: undefined;
+
+		// If we already have a panel, show it.
+		if (DocumentationPanel.currentPanel) {
+			DocumentationPanel.currentPanel._panel.reveal(column);
+			return;
+		}
+
+		// Otherwise, create a new panel.
+		const panel = vscode.window.createWebviewPanel(
+			DocumentationPanel.viewType,
+			'Documentation',
+			vscode.ViewColumn.Three,
+			{
+				// Enable javascript in the webview
+				enableScripts: true,
+			}
+		);
+
+		DocumentationPanel.currentPanel = new DocumentationPanel(panel, uri);
+	}
     
 
-	public static revive(panel: vscode.WebviewPanel, extensionPath: string) {
-		DocumentationPanel.currentPanel = new DocumentationPanel(panel, extensionPath);
+	public static revive(panel: vscode.WebviewPanel, uri: string) {
+		DocumentationPanel.currentPanel = new DocumentationPanel(panel, uri);
     }
     
     public doRefactor() {
@@ -78,38 +105,18 @@ export class DocumentationPanel {
 	}
 
 	private _update() {
-		const webview = this._panel.webview;
-
-		// Vary the webview's content based on where it is located in the editor.
-		switch (this._panel.viewColumn) {
-			case vscode.ViewColumn.Two:
-				// this._updateForCat(webview, 'Compiling Cat');
-				return;
-
-			case vscode.ViewColumn.Three:
-				// this._updateForCat(webview, 'Testing Cat');
-				return;
-
-			case vscode.ViewColumn.One:
-			default:
-				// this._updateForCat(webview, 'Coding Cat');
-				return;
-		}
+		this._updateDocumentationPage(this._panel.webview, this._uri);
     }
     
-    private _updateDocumentationPage(webview: vscode.Webview, somePath: string) {
-		this._panel.title = somePath;
-		this._panel.webview.html = this._getHtmlForWebview(webview, somePath);
+    private async _updateDocumentationPage(webview: vscode.Webview, uri: string) {
+        this._panel.title = "Documentation";
+
+        webview.html = (await axios.get(uri)).data;
     }
     
     private _getHtmlForWebview(webview: vscode.Webview, somePath: string) {
-		// Local path to main script run in the webview
-		const scriptPathOnDisk = vscode.Uri.file(
-			path.join(this._extensionPath, 'media', 'main.js')
-		);
-
 		// And the uri we use to load this script in the webview
-		const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
+		const scriptUri = "";
 
 		// Use a nonce to whitelist which scripts can be run
 		const nonce = getNonce();

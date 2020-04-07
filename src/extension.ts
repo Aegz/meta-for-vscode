@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 
 import { DocumentationPanel } from './documentationPanel';
+import { FileOrFolderHandler } from './fileOrFolderHandler';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,13 +19,23 @@ export function activate(context: vscode.ExtensionContext) {
 	let viewDocsCommand = vscode.commands.registerCommand('meta-for-vscode.viewDocumentation', (fileOrFolder) => {
 		// Safety check
 		if (fileOrFolder) {
-			// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
+			try {
+				// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
+				const returnVal = (new FileOrFolderHandler()).tryInterpret(fileOrFolder);
 
-			// Then we want to see if there is a local 
+				if (returnVal.success && returnVal.meta) {
+					DocumentationPanel.createOrShow(returnVal.meta.url ? returnVal.meta.url : "www.google.com");
+
+					// Display a message box to the user
+					vscode.window.showInformationMessage(`Successfully opened documentation for ${fileOrFolder}`);
+				} else {
+					vscode.window.showWarningMessage('Couldn\'t find a local meta.js file');
+				}
+			} catch (e) {
+				vscode.window.showErrorMessage('Error', e);
+			}
 		}
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Meta for VSCode!');
 	});
 
 	context.subscriptions.push(viewDocsCommand);
