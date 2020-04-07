@@ -46,17 +46,18 @@ export function activate(context: vscode.ExtensionContext) {
 		// Make sure we register a serializer in activation event
 		vscode.window.registerWebviewPanelSerializer(PanelHandler.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-				console.log(`Got state: ${state}`);
 				const returnVal = FileOrFolderHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
 
 				if (returnVal.success && returnVal.meta) {
 					if (!returnVal.meta.url) {
 						vscode.window.showWarningMessage('meta file doesn\'t contain a valid url');
+					} else {
+						PanelHandler.revive(webviewPanel, returnVal.fileName || "Not provided", returnVal.meta.url);
 						return;
 					}
-
-					PanelHandler.revive(webviewPanel, returnVal.fileName || "Not provided", returnVal.meta.url);
 				} 
+				
+				webviewPanel.dispose();
 			}
 		});
 	}

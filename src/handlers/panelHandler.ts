@@ -61,13 +61,14 @@ export class PanelHandler {
 
 		// If we already have a panel, show it.
 		if (PanelHandler.currentPanel) {
-			// Refresh the panel if its required
-			if (PanelHandler.currentPanel._uri !== uri) {
-				PanelHandler.revive(PanelHandler.currentPanel._panel, fileName, uri);
+			// Just reveal and ignore
+			if (PanelHandler.currentPanel._uri === uri) {
+				PanelHandler.currentPanel._panel.reveal(column);
+				return;
 			}
 
-			PanelHandler.currentPanel._panel.reveal(column);
-			return;
+			// Dispose if it so it can be rebuilt with the new html
+			PanelHandler.currentPanel.dispose();
 		}
 
 		// Otherwise, create a new panel.
@@ -78,6 +79,7 @@ export class PanelHandler {
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
+
 			}
 		);
 

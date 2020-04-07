@@ -10,7 +10,8 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:meta-for-vscode.viewDocumentation"
+		"onCommand:meta-for-vscode.viewDocumentation",
+		"onWebviewPanel:docPanel"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
