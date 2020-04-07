@@ -2,8 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-import { DocumentationPanel } from './documentationPanel';
-import { FileOrFolderHandler, DocumentFetchResult } from './fileOrFolderHandler';
+import { PanelHandler } from './handlers/panelHandler';
+import { FileOrFolderHandler } from './handlers/fileOrFolderHandler';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 					return;
 				}
 
-				DocumentationPanel.createOrShow(fileOrFolder, returnVal.meta.url);
+				PanelHandler.createOrShow(fileOrFolder, returnVal.meta.url);
 
 				// Display a message box to the user
 				vscode.window.showInformationMessage(`Successfully opened documentation for ${returnVal.fileName}`);
@@ -44,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// We need to register this or we can't use the webview
 	if (vscode.window.registerWebviewPanelSerializer) {
 		// Make sure we register a serializer in activation event
-		vscode.window.registerWebviewPanelSerializer(DocumentationPanel.viewType, {
+		vscode.window.registerWebviewPanelSerializer(PanelHandler.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
 				console.log(`Got state: ${state}`);
 				const returnVal = FileOrFolderHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					DocumentationPanel.revive(webviewPanel, returnVal.fileName || "Not provided", returnVal.meta.url);
+					PanelHandler.revive(webviewPanel, returnVal.fileName || "Not provided", returnVal.meta.url);
 				} 
 			}
 		});

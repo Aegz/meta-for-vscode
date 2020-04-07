@@ -4,11 +4,11 @@ import axios from 'axios';
 /**
  * Handles the panel state etc.
  */
-export class DocumentationPanel {
+export class PanelHandler {
     /**
 	 * Track the currently panel. Only allow a single panel to exist at a time.
 	 */
-    public static currentPanel: DocumentationPanel | undefined;
+    public static currentPanel: PanelHandler | undefined;
     
     public static readonly viewType = 'docPanel';
 
@@ -60,14 +60,14 @@ export class DocumentationPanel {
 			: undefined;
 
 		// If we already have a panel, show it.
-		if (DocumentationPanel.currentPanel) {
-			DocumentationPanel.currentPanel._panel.reveal(column);
+		if (PanelHandler.currentPanel) {
+			PanelHandler.currentPanel._panel.reveal(column);
 			return;
 		}
 
 		// Otherwise, create a new panel.
 		const panel = vscode.window.createWebviewPanel(
-			DocumentationPanel.viewType,
+			PanelHandler.viewType,
 			'Documentation',
 			vscode.ViewColumn.Three,
 			{
@@ -76,22 +76,16 @@ export class DocumentationPanel {
 			}
 		);
 
-		DocumentationPanel.currentPanel = new DocumentationPanel(panel, fileName, uri);
+		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
 	}
     
 
 	public static revive(panel: vscode.WebviewPanel, fileName: string, uri: string) {
-		DocumentationPanel.currentPanel = new DocumentationPanel(panel, fileName, uri);
+		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
     }
-    
-    public doRefactor() {
-		// Send a message to the webview webview.
-		// You can send any JSON serializable data.
-		this._panel.webview.postMessage({ command: 'refactor' });
-	}
 
 	public dispose() {
-		DocumentationPanel.currentPanel = undefined;
+		PanelHandler.currentPanel = undefined;
 
 		// Clean up our resources
 		this._panel.dispose();
@@ -104,14 +98,9 @@ export class DocumentationPanel {
 		}
 	}
 
-	private _update() {
-		this._updateDocumentationPage(this._panel.webview);
-    }
-    
-    private async _updateDocumentationPage(webview: vscode.Webview) {
-        this._panel.title = this._fileName;
-
-        webview.html = (await axios.get(this._uri)).data;
+	private async _update() {
+		this._panel.title = this._fileName;
+        this._panel.webview.html = (await axios.get(this._uri)).data;
     }
     
     private _getHtmlForWebview(webview: vscode.Webview, somePath: string) {
