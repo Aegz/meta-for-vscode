@@ -61,6 +61,11 @@ export class PanelHandler {
 
 		// If we already have a panel, show it.
 		if (PanelHandler.currentPanel) {
+			// Refresh the panel if its required
+			if (PanelHandler.currentPanel._uri !== uri) {
+				PanelHandler.revive(PanelHandler.currentPanel._panel, fileName, uri);
+			}
+
 			PanelHandler.currentPanel._panel.reveal(column);
 			return;
 		}
@@ -100,32 +105,20 @@ export class PanelHandler {
 
 	private async _update() {
 		this._panel.title = this._fileName;
-        this._panel.webview.html = (await axios.get(this._uri)).data;
+		this._panel.webview.html = (await axios.get(this._uri)).data;
+		//this._panel.webview.html = this._getHtmlForWebview();
     }
     
-    private _getHtmlForWebview(webview: vscode.Webview, somePath: string) {
-		// And the uri we use to load this script in the webview
-		const scriptUri = "";
-
-		// Use a nonce to whitelist which scripts can be run
-		const nonce = getNonce();
-
+    private _getHtmlForWebview() {
 		return `<!DOCTYPE html>
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <!--
-                Use a content security policy to only allow loading images from https or from our extension directory,
-                and only allow scripts that have a specific nonce.
-                -->
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Cat Coding</title>
+                <title>Documentation</title>
             </head>
             <body>
-                <img src="${somePath}" width="300" />
-                <h1 id="lines-of-code-counter">0</h1>
-                <script nonce="${nonce}" src="${scriptUri}"></script>
+                <iframe src="${this._uri}"></iframe>
             </body>
             </html>`;
 	}
