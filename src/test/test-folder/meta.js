@@ -1,5 +1,8 @@
 module.exports = {
     'some-file': {
-        url: 'https://www.google.com/'
-    }
+        url: 'https://www.bing.com/'
+    },
+    'aFolder': {
+        url: 'https://www.atlassian.com/'
+    },
 };

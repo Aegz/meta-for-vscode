@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 
 import { DocumentationPanel } from './documentationPanel';
-import { FileOrFolderHandler } from './fileOrFolderHandler';
+import { FileOrFolderHandler, DocumentFetchResult } from './fileOrFolderHandler';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -17,35 +17,46 @@ export function activate(context: vscode.ExtensionContext) {
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let viewDocsCommand = vscode.commands.registerCommand('meta-for-vscode.viewDocumentation', (fileOrFolder) => {
-		// Safety check
-		if (fileOrFolder) {
-			try {
-				// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
-				const returnVal = (new FileOrFolderHandler()).tryInterpret(fileOrFolder);
+		try {
+			// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
+			const returnVal = FileOrFolderHandler.tryInterpret(fileOrFolder);
 
-				if (returnVal.success && returnVal.meta) {
-					DocumentationPanel.createOrShow(returnVal.meta.url ? returnVal.meta.url : "www.google.com");
-
-					// Display a message box to the user
-					vscode.window.showInformationMessage(`Successfully opened documentation for ${fileOrFolder}`);
-				} else {
-					vscode.window.showWarningMessage('Couldn\'t find a local meta.js file');
+			if (returnVal.success && returnVal.meta) {
+				if (!returnVal.meta.url) {
+					vscode.window.showWarningMessage('meta file doesn\'t contain a valid url');
+					return;
 				}
-			} catch (e) {
-				vscode.window.showErrorMessage('Error', e);
-			}
-		}
 
+				DocumentationPanel.createOrShow(fileOrFolder, returnVal.meta.url);
+
+				// Display a message box to the user
+				vscode.window.showInformationMessage(`Successfully opened documentation for ${returnVal.fileName}`);
+			} else {
+				vscode.window.showWarningMessage('Couldn\'t find a local meta.js file');
+			}
+		} catch (e) {
+			vscode.window.showErrorMessage('Error', e);
+		}
 	});
 
 	context.subscriptions.push(viewDocsCommand);
 
+	// We need to register this or we can't use the webview
 	if (vscode.window.registerWebviewPanelSerializer) {
 		// Make sure we register a serializer in activation event
 		vscode.window.registerWebviewPanelSerializer(DocumentationPanel.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
 				console.log(`Got state: ${state}`);
-				DocumentationPanel.revive(webviewPanel, context.extensionPath);
+				const returnVal = FileOrFolderHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
+
+				if (returnVal.success && returnVal.meta) {
+					if (!returnVal.meta.url) {
+						vscode.window.showWarningMessage('meta file doesn\'t contain a valid url');
+						return;
+					}
+
+					DocumentationPanel.revive(webviewPanel, returnVal.fileName || "Not provided", returnVal.meta.url);
+				} 
 			}
 		});
 	}

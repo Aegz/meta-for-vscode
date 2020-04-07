@@ -10,13 +10,14 @@ export interface DocumentFetchResult {
 
 export interface Meta {
 	url: string;
+	title?: string;
 }
 
 /**
  * Handles the panel state etc.
  */
 export class FileOrFolderHandler {
-	public tryInterpret (uri: vscode.Uri): DocumentFetchResult {
+	public static tryInterpret (uri: vscode.Uri): DocumentFetchResult {
 		if (uri && (uri.scheme === "file" || uri.scheme === "folder")) {
 			// get the parent folder so we can scan and see if the file exists
 			const pathSegments = uri.path.split(path.sep);
