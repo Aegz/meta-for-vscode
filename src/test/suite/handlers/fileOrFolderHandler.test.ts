@@ -14,7 +14,7 @@ suite('File or Folder Handler', () => {
 		const fileResult = MetaHandler.tryInterpret(generateTestFolderUri("some-file.js"));
 
 		assert.equal(fileResult.status, MetaFetchResult.MetaAndMatchFound);
-		assert.equal(fileResult.meta && fileResult.meta.name, "some-file");
+		assert.equal(fileResult.meta && fileResult.meta.name, "some-file.js");
 		// assert.equal(fileResult && fileResult.meta && fileResult.meta.url.length > 0, true);
 		
 		// Test that a working file with a meta is importable and usable
@@ -59,5 +59,5 @@ suite('File or Folder Handler', () => {
 });
 
 function generateTestFolderUri(relativePath: string) {
-	return vscode.Uri.file(path.join(__dirname, path.join("test-example", relativePath)));
+	return vscode.Uri.file(path.join(__dirname.replace(/out/g, 'src'), path.join("test-example", relativePath)));
 }
