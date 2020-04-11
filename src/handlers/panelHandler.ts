@@ -19,6 +19,10 @@ export class PanelHandler {
     private _disposables: vscode.Disposable[] = [];
 
     private constructor(panel: vscode.WebviewPanel, meta: DocumentMeta) {
+		if (!meta || !meta.name || !meta.documentation) {
+			throw new Error("PanelHandler: Invalid meta object passed into constructor");
+		}
+
         this._panel = panel;
 		this._meta = meta;
 
@@ -55,17 +59,11 @@ export class PanelHandler {
     }
 
     public static createOrShow(meta: DocumentMeta) {
-		const column = vscode.window.activeTextEditor
-			? vscode.window.activeTextEditor.viewColumn
-			: undefined;
-
-			
-
 		// If we already have a panel, show it.
 		if (PanelHandler.currentPanel) {
 			// Just reveal and ignore
-			if (PanelHandler.currentPanel._meta.documentation === meta.documentation) {
-				PanelHandler.currentPanel._panel.reveal(column);
+			if (meta && PanelHandler.currentPanel._meta.documentation === meta.documentation) {
+				PanelHandler.currentPanel._panel.reveal(vscode.ViewColumn.Beside);
 				return;
 			}
 

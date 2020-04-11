@@ -2,7 +2,7 @@
 	"name": "meta-for-vscode",
 	"displayName": "Meta for VSCode",
 	"description": "A tool to allow and facilitate the documentation of files and folders within a project",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.43.0"
 	},
@@ -43,6 +43,7 @@
 		"@types/markdown-it": "^10.0.0",
 		"@types/mocha": "^7.0.2",
 		"@types/node": "^13.11.0",
+		"@types/sinon": "^9.0.0",
 		"@types/vscode": "^1.43.0",
 		"@typescript-eslint/eslint-plugin": "^2.26.0",
 		"@typescript-eslint/parser": "^2.26.0",
@@ -50,6 +51,7 @@
 		"glob": "^7.1.6",
 		"markdown-it": "^10.0.0",
 		"mocha": "^7.1.1",
+		"sinon": "^9.0.2",
 		"typescript": "^3.8.3",
 		"vscode-test": "^1.3.0"
 	}

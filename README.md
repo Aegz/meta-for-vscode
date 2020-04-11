@@ -1,65 +1,74 @@
 # meta-for-vscode README
 
-This is the README for your extension "meta-for-vscode". After writing up a brief description, we recommend including the following sections.
+Simple extension for VS Code to hopefully help improve documentation within larger projects.
+
+The motive for something like this is that it's not uncommon to see some documentation in a different location (e.g. Confluence) which is commonly tightly coupled with some code in git which isn't ideal. Alternatively, this documentation might not even exist and has to be passed on in a workshop or on an ad-hoc basis because there are too many files or folders to go through in one sitting.
+
+So the thought was to introduce a .meta folder where its needed and store it in git which would house simple docs to provide some clarification.
+
+```
+e.g.
+/some-app
+- packages
+-- .meta <-- We only document the packages folder items
+--- next-gen.md
+--- package-killer.md
+--- apollo.md
+--- database.md
+--- legacy.md
+--- loader.ts.md
+-- next-gen
+-- package-killer
+-- apollo
+-- database
+-- legacy
+-- nodocs <-- This one isn't documented because its special
+-- index.ts <-- This file isn't documented either
+-- loader.ts
+- src
+- main.ts
+- tsconfig.json
+- webpack.config
+```
+
+This should be used sparingly and only when necessary. NOT EVERYTHING NEEDS A DOCUMENT and it should only be used when you are certain something will definitely need the extra information or context.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Right click menu option on files and folders in VS Code which will open the markdown files associated with it in /.meta
 
-For example if there is an image subfolder under your extension project workspace:
+## Roadmap
 
-\!\[feature X\]\(images/feature-x.png\)
+#### Better context menu visibility
+Enable context menu item ONLY when the file has documentation to view instead of doing a check every time
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+#### Cleaner webview
+Fix WebView panel so instead of opening and closing on change, it'll reuse the existing panel
 
-## Requirements
+#### Config files
+Add a paradigm for showing documentation based on a config file which could contain file paths or globs to better control what docs to show.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+This would reduce on the duplication of documentation as these could be applied across files or folders based on patterns.
 
-## Extension Settings
+Also this would open up the possibility to allow adding URLs to the documentation process which is useful especially if most of your documentation is external.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+```
+e.g. 
+.metarc
+{
+    "**/messages.js": {
+        uri: "https://documentation/patterns/messages.js"
+    },
+    "**/portal.js": {
+        path: ".meta/portal-all.js.md"
+    },
+}
+```
 
-For example:
+Once a config file like this is implemented, it could potentially be stuck at the root and the code could just traverse up until it finds one.
 
-This extension contributes the following settings:
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+#### Hide .meta folders from VSCode
+This wouldn't just involve hiding them, it would also mean letting people edit the .md files in .meta through this extension.
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+The reasoning for doing something like this is just general cleanliness of the sidebar
