@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import axios from 'axios';
+import * as MarkdownIt from 'markdown-it';
+import * as fs from 'fs';
 
 /**
  * Handles the panel state etc.
@@ -13,14 +14,14 @@ export class PanelHandler {
     public static readonly viewType = 'docPanel';
 
     private readonly _panel: vscode.WebviewPanel;
-    private readonly _uri: string;
+    private readonly _metaPath: string;
     private readonly _fileName: string;
     private _disposables: vscode.Disposable[] = [];
 
-    private constructor(panel: vscode.WebviewPanel, fileName: string, uri: string) {
+    private constructor(panel: vscode.WebviewPanel, fileName: string, metaPath: string) {
         this._panel = panel;
         this._fileName = fileName;
-		this._uri = uri;
+		this._metaPath = metaPath;
 
 		// Set the webview's initial html content
 		this._update();
@@ -59,10 +60,12 @@ export class PanelHandler {
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
 
+			
+
 		// If we already have a panel, show it.
 		if (PanelHandler.currentPanel) {
 			// Just reveal and ignore
-			if (PanelHandler.currentPanel._uri === uri) {
+			if (PanelHandler.currentPanel._metaPath === uri) {
 				PanelHandler.currentPanel._panel.reveal(column);
 				return;
 			}
@@ -75,18 +78,16 @@ export class PanelHandler {
 		const panel = vscode.window.createWebviewPanel(
 			PanelHandler.viewType,
 			'Documentation',
-			vscode.ViewColumn.Three,
+			vscode.ViewColumn.Beside,
 			{
-				// Enable javascript in the webview
-				enableScripts: true,
-
+				// Disable javascript in the webview
+				enableScripts: false,
 			}
 		);
 
 		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
 	}
     
-
 	public static revive(panel: vscode.WebviewPanel, fileName: string, uri: string) {
 		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
     }
@@ -107,11 +108,10 @@ export class PanelHandler {
 
 	private async _update() {
 		this._panel.title = this._fileName;
-		this._panel.webview.html = (await axios.get(this._uri)).data;
-		//this._panel.webview.html = this._getHtmlForWebview();
+		this._panel.webview.html = await this._getHtmlForWebview();
     }
     
-    private _getHtmlForWebview() {
+    private async _getHtmlForWebview() {
 		return `<!DOCTYPE html>
             <html lang="en">
             <head>
@@ -120,18 +120,21 @@ export class PanelHandler {
                 <title>Documentation</title>
             </head>
             <body>
-                <iframe src="${this._uri}"></iframe>
+                ${ new MarkdownIt().render((await readFile(this._metaPath)) as string) }
             </body>
             </html>`;
 	}
 }
 
-
-function getNonce() {
-	let text = '';
-	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
+// https://stackoverflow.com/questions/46867517/how-to-read-file-with-async-await-properly
+async function readFile(path: string) {
+	return new Promise((resolve, reject) => {
+		fs.readFile(path, 'utf8', function (err, data) {
+			if (err) {
+				reject(err);
+			}
+			
+			resolve(data);
+		});
+	});
 }

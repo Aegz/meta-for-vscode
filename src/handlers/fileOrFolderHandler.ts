@@ -3,14 +3,15 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 export interface DocumentFetchResult {
-	success: boolean;
+	status: MetaFetchResult;
 	fileName?: string;
-	meta?: Meta;
+	meta?: string;
 }
 
-export interface Meta {
-	url: string;
-	title?: string;
+export enum MetaFetchResult {
+	MetaNotFound = 0,
+	MetaAndMatchFound = 1,
+	MetaAndNoMatch = 2
 }
 
 /**
@@ -21,27 +22,30 @@ export class FileOrFolderHandler {
 		if (uri && (uri.scheme === "file" || uri.scheme === "folder")) {
 			// get the parent folder so we can scan and see if the file exists
 			const pathSegments = uri.path.split(path.sep);
-			const isDirectory = fs.lstatSync(uri.path).isDirectory();
-			const fileOrFolderName = isDirectory ? (pathSegments.pop()|| "") : (pathSegments.pop()|| "").split('.').slice(0, -1).join('.');
-			const closestMetaFilePath = [...pathSegments, "meta.js"].join(path.sep);
+			const fileOrFolderName = (pathSegments.pop()|| "");
+			const immediateMetaFolder = [...pathSegments, ".meta"].join(path.sep);
 
-			// Check if there is a local meta.js file
-			if (fileOrFolderName && fs.existsSync(closestMetaFilePath)) {
-				const metaData = require(closestMetaFilePath);
-				// If theres something valid to use
-				// Check that the metadata object actually has what we want
-				if (metaData && typeof metaData === 'object' && metaData[fileOrFolderName]) {
-					return  {
-						success: true,
+			// Check if the local meda folder exists AND that the folder contains the appropriate md file inside of it
+			if (fileOrFolderName && fs.existsSync(immediateMetaFolder)) {
+				const metaFile = [immediateMetaFolder, `${fileOrFolderName}.md`].join(path.sep);
+
+				if (fs.existsSync(metaFile)) {
+					// Return a vscode.Uri.File?
+					return {
+						status: MetaFetchResult.MetaAndMatchFound,
 						fileName: fileOrFolderName,
-						meta: metaData[fileOrFolderName]
+						meta: metaFile
 					};
 				}
+
+				return {
+					status: MetaFetchResult.MetaAndNoMatch
+				};
 			}
 		}
 
 		return {
-			success: false
+			status: MetaFetchResult.MetaNotFound
 		};
 	}
 }
