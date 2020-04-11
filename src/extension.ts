@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { PanelHandler } from './handlers/panelHandler';
-import { FileOrFolderHandler, MetaFetchResult } from './handlers/fileOrFolderHandler';
+import { MetaHandler, MetaFetchResult } from './handlers/metaHandler';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -17,13 +17,13 @@ export function activate(context: vscode.ExtensionContext) {
 	let viewDocsCommand = vscode.commands.registerCommand('meta-for-vscode.viewDocumentation', (fileOrFolder) => {
 		try {
 			// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
-			const result = FileOrFolderHandler.tryInterpret(fileOrFolder);
+			const result = MetaHandler.tryInterpret(fileOrFolder);
 
 			if (result.status === MetaFetchResult.MetaAndMatchFound && result.meta) {
-				PanelHandler.createOrShow(fileOrFolder, result.meta);
-
+				PanelHandler.createOrShow(result.meta);
+				
 				// Display a message box to the user
-				vscode.window.showInformationMessage(`Successfully opened documentation for ${result.fileName}`);
+				vscode.window.setStatusBarMessage(`Successfully opened documentation for ${result.meta.name}`);
 			} 
 			else if (result.status === MetaFetchResult.MetaAndNoMatch) {
 				vscode.window.showWarningMessage('The .meta folder didn\'t have a match for the requested document');
@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showWarningMessage('Couldn\'t find a local .meta folder');
 			}
 		} catch (e) {
-			vscode.window.showErrorMessage('Error', e);
+			vscode.window.showErrorMessage('Fatal error while trying to read .meta folder', e);
 		}
 	});
 
@@ -43,13 +43,13 @@ export function activate(context: vscode.ExtensionContext) {
 		// Make sure we register a serializer in activation event
 		vscode.window.registerWebviewPanelSerializer(PanelHandler.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-				const result = FileOrFolderHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
+				const result = MetaHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
 
 				if (result.status === MetaFetchResult.MetaAndMatchFound) {
-					if (!result.meta && !result.fileName) {
+					if (!result.meta) {
 						vscode.window.showWarningMessage('meta file doesn\'t contain a valid url');
 					} else {
-						PanelHandler.revive(webviewPanel, result.fileName || "", result.meta || "");
+						PanelHandler.revive(webviewPanel, result.meta);
 						return;
 					}
 				} 

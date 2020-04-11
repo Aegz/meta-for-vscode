@@ -4,8 +4,12 @@ import * as vscode from 'vscode';
 
 export interface DocumentFetchResult {
 	status: MetaFetchResult;
-	fileName?: string;
-	meta?: string;
+	meta?: DocumentMeta
+}
+
+export interface DocumentMeta {
+	name: string;
+	documentation: string;
 }
 
 export enum MetaFetchResult {
@@ -17,7 +21,7 @@ export enum MetaFetchResult {
 /**
  * Handles the panel state etc.
  */
-export class FileOrFolderHandler {
+export class MetaHandler {
 	public static tryInterpret (uri: vscode.Uri): DocumentFetchResult {
 		if (uri && (uri.scheme === "file" || uri.scheme === "folder")) {
 			// get the parent folder so we can scan and see if the file exists
@@ -33,8 +37,10 @@ export class FileOrFolderHandler {
 					// Return a vscode.Uri.File?
 					return {
 						status: MetaFetchResult.MetaAndMatchFound,
-						fileName: fileOrFolderName,
-						meta: metaFile
+						meta: {
+							name: fileOrFolderName,
+							documentation: metaFile
+						}
 					};
 				}
 

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as MarkdownIt from 'markdown-it';
 import * as fs from 'fs';
+import { DocumentMeta } from './metaHandler';
 
 /**
  * Handles the panel state etc.
@@ -14,14 +15,12 @@ export class PanelHandler {
     public static readonly viewType = 'docPanel';
 
     private readonly _panel: vscode.WebviewPanel;
-    private readonly _metaPath: string;
-    private readonly _fileName: string;
+    private readonly _meta: DocumentMeta;
     private _disposables: vscode.Disposable[] = [];
 
-    private constructor(panel: vscode.WebviewPanel, fileName: string, metaPath: string) {
+    private constructor(panel: vscode.WebviewPanel, meta: DocumentMeta) {
         this._panel = panel;
-        this._fileName = fileName;
-		this._metaPath = metaPath;
+		this._meta = meta;
 
 		// Set the webview's initial html content
 		this._update();
@@ -55,7 +54,7 @@ export class PanelHandler {
 		);
     }
 
-    public static createOrShow(fileName: string, uri: string) {
+    public static createOrShow(meta: DocumentMeta) {
 		const column = vscode.window.activeTextEditor
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
@@ -65,7 +64,7 @@ export class PanelHandler {
 		// If we already have a panel, show it.
 		if (PanelHandler.currentPanel) {
 			// Just reveal and ignore
-			if (PanelHandler.currentPanel._metaPath === uri) {
+			if (PanelHandler.currentPanel._meta.documentation === meta.documentation) {
 				PanelHandler.currentPanel._panel.reveal(column);
 				return;
 			}
@@ -85,11 +84,11 @@ export class PanelHandler {
 			}
 		);
 
-		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
+		PanelHandler.currentPanel = new PanelHandler(panel, meta);
 	}
     
-	public static revive(panel: vscode.WebviewPanel, fileName: string, uri: string) {
-		PanelHandler.currentPanel = new PanelHandler(panel, fileName, uri);
+	public static revive(panel: vscode.WebviewPanel, meta: DocumentMeta) {
+		PanelHandler.currentPanel = new PanelHandler(panel, meta);
     }
 
 	public dispose() {
@@ -107,7 +106,7 @@ export class PanelHandler {
 	}
 
 	private async _update() {
-		this._panel.title = this._fileName;
+		this._panel.title = this._meta.name;
 		this._panel.webview.html = await this._getHtmlForWebview();
     }
     
@@ -120,7 +119,7 @@ export class PanelHandler {
                 <title>Documentation</title>
             </head>
             <body>
-                ${ new MarkdownIt().render((await readFile(this._metaPath)) as string) }
+                ${ new MarkdownIt().render((await readFile(this._meta.documentation)) as string) }
             </body>
             </html>`;
 	}
