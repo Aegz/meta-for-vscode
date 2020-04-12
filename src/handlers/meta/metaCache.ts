@@ -3,14 +3,27 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 export class MetaCache {
     // Array of folders and their caches
     private readonly _children: { [id: string]: string | MetaCache } = {};
     private readonly _globPatterns = {};
 
+    private readonly _pathSegmentsToIgnore: string[];
+
+    public constructor() {
+        this._pathSegmentsToIgnore = (vscode.workspace.rootPath || "").split(path.sep).filter(part => part);
+    }
+
+    private getFilteredPath(filePath: string) {
+        return filePath.split(path.sep).filter(part => part).filter((part, index) => {
+            return index !== this._pathSegmentsToIgnore.indexOf(part);
+        });;
+    }
+
     public getByPath(filePath: string) {
-        const pathParts = filePath.split(path.sep).filter(part => part);
+        const pathParts = this.getFilteredPath(filePath);
 
         let iterator: MetaCache = this;
 
@@ -30,6 +43,10 @@ export class MetaCache {
         
         // Glob match as a fallback
 
+        // for (let part of pathParts.reverse()) {
+
+        // }
+        
         return null;
     }
 
@@ -43,8 +60,7 @@ export class MetaCache {
     //
     // When you set, build the cache up as necessary
     public setPath(filePath: string, value: any) {
-        const pathParts = filePath.split(path.sep).filter(part => part);
-
+        const pathParts = this.getFilteredPath(filePath);
         let iterator: MetaCache = this;
 
         pathParts.forEach((part, index) => {
