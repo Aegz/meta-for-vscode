@@ -93,10 +93,10 @@ export class MetaHandler {
 
 		// With the path, start dropping elements off the end and checking for a local .metarc file
 		while (pathSegments.length > 0) {
-			const potentialMetaRcFile = [pathSegments, '.metarc'].join(path.sep);
+			const potentialMetaRcFile = [...pathSegments, '.metarc'].join(path.sep);
 			if (fs.existsSync(potentialMetaRcFile)) {
 				// Check for a .metarc file
-				const metarc = require(potentialMetaRcFile);
+				const metarc = require(`${path.sep}${potentialMetaRcFile}`);
 
 				// Just check for a direct match 
 				if (depth === 0 && metarc[fileName]) {
@@ -104,9 +104,13 @@ export class MetaHandler {
 					return metarc[fileName];
 				}
 
-				// Check if it contains and globs that could be used
-				if (Object.keys(metarc).some(name => name.includes("*")) && micromatch([fileName], Object.keys(metarc))) {
-					return metarc[fileName];
+				// For each of the keys that has a * we want to see if there is a match
+				const possibleRules = Object.keys(metarc).filter(name => name.includes("*"));
+				for (const rule of possibleRules) {
+					// If there is a match we want, return the MD file for it
+					if (micromatch.isMatch(filePath, rule)) {
+						return [...pathSegments, metarc[rule]].join(path.sep);
+					}
 				}
 			}
 
