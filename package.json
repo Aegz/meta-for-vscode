@@ -1,8 +1,16 @@
 {
 	"name": "meta-for-vscode",
 	"displayName": "Meta for VSCode",
+	"icon": "assets/icon.png",
 	"description": "A tool to allow and facilitate the documentation of files and folders within a project",
 	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Aegz/meta-for-vscode"
+	},
+	"bugs": {
+		"url": "https://github.com/Aegz/meta-for-vscode/issues"
+	},
 	"engines": {
 		"vscode": "^1.43.0"
 	},

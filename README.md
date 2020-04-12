@@ -72,3 +72,7 @@ Once a config file like this is implemented, it could potentially be stuck at th
 This wouldn't just involve hiding them, it would also mean letting people edit the .md files in .meta through this extension.
 
 The reasoning for doing something like this is just general cleanliness of the sidebar
+
+
+#### Link to other meta .md files
+Link to other meta .md files from existing meta .md files. This could be done via invoking a command for meta to open them
