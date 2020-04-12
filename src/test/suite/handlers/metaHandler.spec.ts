@@ -8,16 +8,17 @@ import { MetaHandler, MetaFetchResult } from '../../../handlers/metaHandler';
 
 suite('File or Folder Handler', () => {
 	vscode.window.showInformationMessage('Start File Or Folder Handler tests');
-	
+	const metaHandler = new MetaHandler();
+
 	test('Test file/folder with meta folder', () => {
 		// Test that a working file with a meta is importable and usable
-		const fileResult = MetaHandler.tryInterpret(generateTestFolderUri("some-file.js"));
+		const fileResult = metaHandler.getMeta(generateTestFolderUri("some-file.js"));
 
 		assert.equal(fileResult.status, MetaFetchResult.MetaAndMatchFound);
 		assert.equal(fileResult.meta && fileResult.meta.name, "some-file.js");
 		
 		// Test that a working file with a meta is importable and usable
-		const folderResult = MetaHandler.tryInterpret(generateTestFolderUri("aFolder"));
+		const folderResult = metaHandler.getMeta(generateTestFolderUri("aFolder"));
 
 		assert.equal(folderResult.status, MetaFetchResult.MetaAndMatchFound);
 		assert.equal(folderResult.meta && folderResult.meta.name, "aFolder");
@@ -25,13 +26,13 @@ suite('File or Folder Handler', () => {
 
 	test('Test file/folder with meta folder but missing info', () => {
 		// Test that a working file with a meta is importable and usable
-		const fileResult = MetaHandler.tryInterpret(generateTestFolderUri("some-file-no-meta.js"));
+		const fileResult = metaHandler.getMeta(generateTestFolderUri("some-file-no-meta.js"));
 
 		assert.equal(fileResult.status, MetaFetchResult.MetaAndNoMatch);
 		assert.equal(fileResult.meta && fileResult.meta.name, undefined);
 
 		// Test that a working file with a meta is importable and usable
-		const folderResult = MetaHandler.tryInterpret(generateTestFolderUri("folderWithNoMeta"));
+		const folderResult = metaHandler.getMeta(generateTestFolderUri("folderWithNoMeta"));
 
 		assert.equal(folderResult.status, MetaFetchResult.MetaAndNoMatch);
 		assert.equal(folderResult.meta && folderResult.meta.name, undefined);
@@ -39,13 +40,13 @@ suite('File or Folder Handler', () => {
 
 	test('Test file without meta folder', () => {
 		// Test that a working file with a meta is importable and usable
-		const fileResult = MetaHandler.tryInterpret(generateTestFolderUri(path.join("aFolder", "childFile.js")));
+		const fileResult = metaHandler.getMeta(generateTestFolderUri(path.join("aFolder", "childFile.js")));
 
 		assert.equal(fileResult.status, MetaFetchResult.MetaNotFound);
 		assert.equal(fileResult.meta && fileResult.meta.name, undefined);
 
 		// Test that a working file with a meta is importable and usable
-		const folderResult = MetaHandler.tryInterpret(generateTestFolderUri(path.join("aFolder", "childFolder")));
+		const folderResult = metaHandler.getMeta(generateTestFolderUri(path.join("aFolder", "childFolder")));
 
 		assert.equal(folderResult.status, MetaFetchResult.MetaNotFound);
 		assert.equal(folderResult.meta && folderResult.meta.name, undefined);

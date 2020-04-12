@@ -5,6 +5,10 @@ All notable changes to the "meta-for-vscode" extension will be documented in thi
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 
+## [Unreleased] - 1.0.0
+- Configuration support added
+- Caching layer added
+
 ## [Unreleased]
 
 - Initial release

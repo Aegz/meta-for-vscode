@@ -1,0 +1,3 @@
+module.exports = {
+    '**/childFile.js': '.meta/aChild-default.js.md'
+};

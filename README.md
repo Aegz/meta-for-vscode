@@ -37,6 +37,66 @@ This should be used sparingly and only when necessary. NOT EVERYTHING NEEDS A DO
 
 Right click menu option on files and folders in VS Code which will open the markdown files associated with it in /.meta
 
+## Examples
+
+#### Using just the .meta folder
+Notice that we have a .meta folder at /some-app/packages/.meta. This means that only the child folders will be able to use the documentation
+```
+e.g.
+/some-app
+- packages
+-- .meta <-- We only document the packages folder items
+--- next-gen.md
+--- package-killer.md
+--- apollo.md
+--- database.md
+--- legacy.md
+--- loader.ts.md
+-- next-gen
+-- package-killer
+-- apollo
+-- database
+-- legacy
+-- nodocs <-- This one isn't documented because its special
+-- index.ts <-- This file isn't documented either
+-- loader.ts
+- src
+- main.ts
+- tsconfig.json
+- webpack.config
+```
+
+#### Configuration file
+If you want to use globs or apply the markdown files via a config file this extension will try to read the closest possible .metarc file and try to match a glob so you can use a single documentation md file for multiple files or folders
+
+```
+e.g.
+/some-app
+- .meta
+-- loader-default.ts.md
+- packages
+-- next-gen
+-- package-killer
+-- apollo
+-- database
+-- legacy
+-- nodocs
+-- index.ts
+-- loader.ts
+- src
+- main.ts
+- tsconfig.json
+- webpack.config
+- .metarc
+```
+
+.metarc
+```
+{
+    '**/loader.ts': '.meta/loader-default.ts.md'
+}
+```
+
 ## Roadmap
 
 #### Better context menu visibility
