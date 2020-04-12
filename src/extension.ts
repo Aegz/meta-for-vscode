@@ -11,13 +11,16 @@ export function activate(context: vscode.ExtensionContext) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "meta-for-vscode" is now active!');
 	
+	// Initialise once on activation and use as a cache
+	const metaHandler = new MetaHandler();
+
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let viewDocsCommand = vscode.commands.registerCommand('meta-for-vscode.viewDocumentation', (fileOrFolder) => {
 		try {
 			// What we want to do is make sure the given object is a File/Folder style object provided by VSCode
-			const result = MetaHandler.tryInterpret(fileOrFolder);
+			const result = metaHandler.getMeta(fileOrFolder);
 
 			if (result.status === MetaFetchResult.MetaAndMatchFound && result.meta) {
 				PanelHandler.createOrShow(result.meta);
