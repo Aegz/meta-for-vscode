@@ -8,8 +8,6 @@ import * as vscode from 'vscode';
 export class MetaCache {
     // Array of folders and their caches
     private readonly _children: { [id: string]: string | MetaCache } = {};
-    private readonly _globPatterns = {};
-
     private readonly _pathSegmentsToIgnore: string[];
 
     public constructor() {
@@ -19,15 +17,14 @@ export class MetaCache {
     private getFilteredPath(filePath: string) {
         return filePath.split(path.sep).filter(part => part).filter((part, index) => {
             return index !== this._pathSegmentsToIgnore.indexOf(part);
-        });;
+        });
     }
 
     public getByPath(filePath: string) {
         const pathParts = this.getFilteredPath(filePath);
-
         let iterator: MetaCache = this;
 
-        // Check for immediate match first
+        // Check for immediate match first since that has priority over a glob match
         for (let part of pathParts) {
             const cachedPart = iterator.get(part);
 
@@ -40,12 +37,6 @@ export class MetaCache {
                 iterator = cachedPart;
             }
         }
-        
-        // Glob match as a fallback
-
-        // for (let part of pathParts.reverse()) {
-
-        // }
         
         return null;
     }

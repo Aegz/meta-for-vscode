@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Make sure we register a serializer in activation event
 		vscode.window.registerWebviewPanelSerializer(PanelHandler.viewType, {
 			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-				const result = MetaHandler.tryInterpret(vscode.Uri.file(context.extensionPath));
+				const result = metaHandler.getMeta(vscode.Uri.file(context.extensionPath));
 
 				if (result.status === MetaFetchResult.MetaAndMatchFound) {
 					if (!result.meta) {

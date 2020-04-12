@@ -51,6 +51,7 @@
 	"devDependencies": {
 		"@types/glob": "^7.1.1",
 		"@types/markdown-it": "^10.0.0",
+		"@types/micromatch": "^4.0.1",
 		"@types/mocha": "^7.0.2",
 		"@types/node": "^13.11.0",
 		"@types/sinon": "^9.0.0",
