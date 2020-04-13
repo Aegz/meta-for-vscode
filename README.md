@@ -37,6 +37,8 @@ This should be used sparingly and only when necessary. NOT EVERYTHING NEEDS A DO
 
 Right click menu option on files and folders in VS Code which will open the markdown files associated with it in /.meta
 
+[![preview](https://s4.gifyu.com/images/previewbd8349507539c524.gif)](https://gifyu.com/image/l9cD)
+
 ## Examples
 
 #### Using just the .meta folder
