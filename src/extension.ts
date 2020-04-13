@@ -27,6 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
 				
 				// Display a message box to the user
 				vscode.window.setStatusBarMessage(`Successfully opened documentation for ${result.meta.name}`);
+			} else if(result.messages && result.messages.length) {
+				vscode.window.showWarningMessage(result.messages[0]);
 			} else {
 				vscode.window.showWarningMessage('Couldn\'t load a meta config or .meta markdown file');
 			}
