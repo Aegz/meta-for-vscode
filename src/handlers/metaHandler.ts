@@ -6,19 +6,14 @@ import * as micromatch from 'micromatch';
 import { MetaCache } from './meta/metaCache';
 
 export interface DocumentFetchResult {
-	status: MetaFetchResult;
-	meta?: DocumentMeta
+	success: boolean;
+	meta?: DocumentMeta;
+	messages: string[];
 }
 
 export interface DocumentMeta {
 	name: string;
 	documentation: string;
-}
-
-export enum MetaFetchResult {
-	MetaNotFound = 0,
-	MetaAndMatchFound = 1,
-	MetaAndNoMatch = 2
 }
 
 /**
@@ -35,35 +30,45 @@ export class MetaHandler {
 	/// Performs the discovery logic to try and determine if there is a valid
 	/// meta folder or config for it to use
 	public getMeta(uri: vscode.Uri): DocumentFetchResult {
+		const messages: string[] = [];
+
+		// Terminate early if its not useable
 		if (!uri || (uri.scheme !== "file")) {
 			return {
-				status: MetaFetchResult.MetaNotFound
+				success: false,
+				messages
 			};
 		}
 
 		// get the parent folder so we can scan and see if the file exists
 		const { fileName } = this.seperateFileOrFolderFromPath(uri.path);
-
+	
 		for(let fetchFunction of [this.testCacheForMeta, this.testLocalMetaFolder, this.testConfigFiles]) {
-			let result;
-			if (result = fetchFunction.apply(this, [uri.path])) {
+			// Call the test function then 
+			let { found, doc, message } = fetchFunction.apply(this, [uri.path]);
+			
+			if (found) {
 				// Cache the result
-				this._metaCache.setPath(uri.path, result);
-				
+				this._metaCache.setPath(uri.path, doc);
+									
 				// return an object with the status
 				return {
-					status: MetaFetchResult.MetaAndMatchFound,
+					success: true,
 					meta: {
 						name: fileName,
-						documentation: result
-					}
+						documentation: doc
+					},
+					messages
 				};
+			} else if (message) {
+				messages.push(message);
 			}
 		}
 
 		// Else we can try and find a higher level result
 		return {
-			status: MetaFetchResult.MetaNotFound
+			success: false,
+			messages
 		};
 	}
 
@@ -80,11 +85,22 @@ export class MetaHandler {
 				// Set the cache value since we have a HIT
 				this._metaCache.setPath(filePath, metaFile);
 
-				return metaFile;
+				return {
+					found: true,
+					doc: metaFile
+				};
 			}
+
+			return {
+				found: false,
+				message: "Found a local meta folder but no matching result"
+			};
 		}
 
-		return null;
+		return {
+			found: false,
+			message: "No local meta folder found"
+		};
 	}
 
 	private testConfigFiles(filePath: string) {
@@ -101,7 +117,10 @@ export class MetaHandler {
 				// Just check for a direct match 
 				if (depth === 0 && metarc[fileName]) {
 					// We'll check the config for a match against this file
-					return metarc[fileName];
+					return {
+						found: true,
+						doc: metarc[fileName]
+					};
 				}
 
 				// For each of the keys that has a * we want to see if there is a match
@@ -109,7 +128,10 @@ export class MetaHandler {
 				for (const rule of possibleRules) {
 					// If there is a match we want, return the MD file for it
 					if (micromatch.isMatch(filePath, rule)) {
-						return [...pathSegments, metarc[rule]].join(path.sep);
+						return {
+							found: true,
+							doc: [...pathSegments, metarc[rule]].join(path.sep)
+						};
 					}
 				}
 			}
@@ -119,7 +141,10 @@ export class MetaHandler {
 			depth++;
 		}
 
-		return null;
+		return {
+			found: false,
+			message: "No config file could be found that had a valid entry"
+		};
 	}
 
 	private testCacheForMeta(filePath: string) {
@@ -129,11 +154,17 @@ export class MetaHandler {
 		if (cacheResult = this._metaCache.getByPath(filePath)) {
 			// Check that the cache hit is still valid (i.e: the file exists)
 			if (fs.existsSync(cacheResult)) {
-				return cacheResult;
+				return {
+					found: true,
+					doc: cacheResult
+				};
 			}
 		}
 
-		return null;
+		return {
+			found: false,
+			message: ""
+		};
 	}
 
 	private seperateFileOrFolderFromPath(filePath: string) {

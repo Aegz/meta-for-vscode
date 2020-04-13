@@ -1,3 +1,4 @@
 module.exports = {
-    '**/childFile.js': '.meta/aChild-default.js.md'
+    '**/childFile.js': '.meta/aChild-default.js.md',
+    '**/childFolder': '.meta/aChild-default.js.md'
 };
