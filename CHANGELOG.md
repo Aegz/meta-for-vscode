@@ -5,6 +5,11 @@ All notable changes to the "meta-for-vscode" extension will be documented in thi
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 
+## [1.0.1] - 1.0.2
+- Caching logic bug fix
+- Better and more comprehensive tests
+- Added examples to the src folder
+
 ## [1.0.0] - 1.0.1
 - Unit tests
 - Better error messages
