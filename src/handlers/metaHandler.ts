@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as micromatch from 'micromatch';
 
 import { MetaCache } from './meta/metaCache';
+import { MetaCacheNode } from './meta/metaCacheNode';
 
 export interface DocumentFetchResult {
 	success: boolean;
@@ -148,12 +149,12 @@ export class MetaHandler {
 	}
 
 	private testCacheForMeta(filePath: string) {
-		let cacheResult;
+		let cacheResult:MetaCacheNode | null = this._metaCache.getByPath(filePath);
 		
 		// Check if our cache has the location of a valid meta file
-		if (cacheResult = this._metaCache.getByPath(filePath)) {
+		if (cacheResult && cacheResult.value) {
 			// Check that the cache hit is still valid (i.e: the file exists)
-			if (fs.existsSync(cacheResult)) {
+			if (fs.existsSync(cacheResult.value)) {
 				return {
 					found: true,
 					doc: cacheResult

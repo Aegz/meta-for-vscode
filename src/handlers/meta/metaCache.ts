@@ -4,11 +4,13 @@
 // https://opensource.org/licenses/MIT
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { MetaCacheNode } from './metaCacheNode';
 
 export class MetaCache {
     // Array of folders and their caches
-    private readonly _children: { [id: string]: string | MetaCache } = {};
+    private readonly _node = new MetaCacheNode("", "");
     private readonly _pathSegmentsToIgnore: string[];
+    public value: string | undefined;
 
     public constructor() {
         this._pathSegmentsToIgnore = (vscode.workspace.rootPath || "").split(path.sep).filter(part => part);
@@ -22,61 +24,35 @@ export class MetaCache {
 
     public getByPath(filePath: string) {
         const pathParts = this.getFilteredPath(filePath);
-        let iterator: MetaCache = this;
-
-        // Check for immediate match first since that has priority over a glob match
-        for (let part of pathParts) {
-            const cachedPart = iterator.get(part);
-
-            if (cachedPart) {
-                if (typeof cachedPart === 'string') {
-                    return cachedPart;
-                }
-
-                // Else its a MetaCache, so we can keep going
-                iterator = cachedPart;
-            }
-        }
-        
-        return null;
-    }
-
-    private get(pathSegment: string): string | MetaCache | null {
-        if (this._children[pathSegment]) {
-            return this._children[pathSegment];
-        }
-        return null;
+        return this._node.find(pathParts.reverse());
     }
 
     //
     // When you set, build the cache up as necessary
     public setPath(filePath: string, value: any) {
         const pathParts = this.getFilteredPath(filePath);
-        let iterator: MetaCache = this;
+        let iterator: MetaCacheNode = this._node;
 
         pathParts.forEach((part, index) => {
-            const cachedPart = iterator.get(part);
+            const cachedPart = iterator.hasKey(part);
             // If there is no match
             if (!cachedPart) {
                 // Last path part
                 if (index === pathParts.length - 1) {
-                    iterator.set(part, value);
+                    iterator.set(new MetaCacheNode(part, value));
                     return;
+                } else {
+                    iterator.set(new MetaCacheNode(part, null));
                 }
 
                 // Else its a MetaCache, so we can keep going
-                const newCache = new MetaCache();
-                iterator.set(part, newCache);
-                
-                iterator = newCache;
+                const childToIterate = iterator.get(part);
+                if (childToIterate) {
+                    iterator = childToIterate;
+                }
             }
         });
     }
-
-    private set(pathSegment: string, value: string | MetaCache) {
-        this._children[pathSegment] = value;
-    }
-
 }
 
 

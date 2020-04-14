@@ -10,32 +10,46 @@ import { beforeEach } from 'mocha';
 suite('Meta Cache', () => {
 	vscode.window.showInformationMessage('Start Cache tests');
 	let metaCache: MetaCache;
+	const defaultPath = ["User","test-user","Projects","meta-for-vscode","aFolder"];
 
 	beforeEach(() => {
 		metaCache = new MetaCache();
 	});
 
 	test('Test set with cache miss', () => {
-		const insertPath = "/User/test-user/Projects/meta-for-vscode/aFolder";
-		const insertValue = "aFolder value";
-
-		metaCache.setPath(insertPath, insertValue);
-
-		assert.equal(metaCache.getByPath(insertPath), insertValue);
+		assert.equal(metaCache.getByPath(path.join(...defaultPath)), null);
 	});
 
 	test('Test set with cache hit', () => {
-		const insertPath = "/User/test-user/Projects/meta-for-vscode/aFolder";
+		const insertPath = path.join(...defaultPath);
 		const insertValue = "aFolder value";
 
 		metaCache.setPath(insertPath, insertValue);
+		const result = metaCache.getByPath(insertPath);
+		assert.equal(result && result.value, insertValue);
 
-		assert.equal(metaCache.getByPath(insertPath), insertValue);
+
+		metaCache.setPath(insertPath, insertValue);
+		const secondResult = metaCache.getByPath(insertPath);
+		assert.equal(secondResult && secondResult.value, insertValue);
 	});
 
 	test('Test get with cache miss', () => {
-		const insertPath = "/User/test-user/Projects/meta-for-vscode/aFolder";
+		const insertPath = path.join(...defaultPath);
 
 		assert.equal(metaCache.getByPath(insertPath), null);
+	});
+
+	test('Test get with cache hit', () => {
+		const insertPath = path.join(...defaultPath);
+		const insertValue = "aFolder value";
+
+		metaCache.setPath(insertPath, insertValue);
+		const parentInsert = metaCache.getByPath(insertPath);
+		assert.equal(parentInsert && parentInsert.value, insertValue);
+
+		const secondaryFetchPath = path.join(...defaultPath, "aFolder");
+		const childInsert = metaCache.getByPath(secondaryFetchPath);
+		assert.equal(childInsert && childInsert.value, null);
 	});
 });
