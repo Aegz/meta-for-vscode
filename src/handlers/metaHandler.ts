@@ -112,7 +112,7 @@ export class MetaHandler {
 			const potentialMetaRcFile = [...pathSegments, '.metarc'].join(path.sep);
 			if (fs.existsSync(potentialMetaRcFile)) {
 				// Check for a .metarc file
-				const metarc = require(`${path.sep}${potentialMetaRcFile}`);
+				const metarc = require(`${potentialMetaRcFile}`);
 
 				// Just check for a direct match 
 				if (depth === 0 && metarc[fileName]) {
@@ -168,7 +168,7 @@ export class MetaHandler {
 	}
 
 	private seperateFileOrFolderFromPath(filePath: string) {
-		const pathSegments = filePath.split(path.sep).filter(part => part);
+		const pathSegments = filePath.split(path.sep);
 		// get the parent folder so we can scan and see if the file exists
 		const fileName = (pathSegments.pop()|| "");
 

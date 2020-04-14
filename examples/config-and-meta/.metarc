@@ -1,0 +1,4 @@
+module.exports = {
+    '**/some-file.js': '.meta/some-file.js.md',
+    '**/aFolder': '.meta/aFolder-default.js.md'
+};
